@@ -9,7 +9,7 @@ test('crosswind never claims literal arrival and headwind has no ETA',()=>{const
 test('ETA formats minute, hour and day intervals',()=>{assert.equal(duration(.2),'< 1 分鐘');assert.equal(duration(7.1),'8 分鐘');assert.equal(duration(80),'1 小時 20 分');assert.equal(duration(1440),'1 天 0 小時');assert.equal(duration(Infinity),'—');});
 
 test('gravity uses SI units, fixed 80 kg, mass scaling and inverse-square distance',()=>{
- const force=gravitationalForce(1000,1e9);
+ const force=gravitationalForce(1000);
  near(force,5.33944e-6,1e-14);
  near(gravitationalForce(500,1e9),force*4,1e-14);
  near(gravitationalForce(1000,2e9),force*2,1e-14);

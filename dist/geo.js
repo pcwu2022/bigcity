@@ -31,9 +31,10 @@ export const cardinal=deg=>['北','東北','東','東南','南','西南','西','
 
 export const GRAVITATIONAL_CONSTANT = 6.67430e-11; // m³ kg⁻¹ s⁻²
 export const PERSON_MASS_KG = 80;
+export const MALL_MASS_KG = 1e9; // Fixed hypothetical mall mass: 1 million tonnes.
 // The mall is approximated as a point mass at DESTINATION. Suppress near-field
 // results: a building's actual mass distribution is needed inside the block.
-export function gravitationalForce(distanceMeters,mallMassKg){
+export function gravitationalForce(distanceMeters,mallMassKg=MALL_MASS_KG){
  if(!Number.isFinite(distanceMeters)||distanceMeters<=ARRIVAL_RADIUS_KM*1000||!Number.isFinite(mallMassKg)||mallMassKg<=0)return null;
  return GRAVITATIONAL_CONSTANT*PERSON_MASS_KG*mallMassKg/distanceMeters**2;
 }

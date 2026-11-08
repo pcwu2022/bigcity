@@ -52,15 +52,11 @@ function render(){
  $('motion-note').textContent=mode==='demo'?'示範速度；啟用定位後，以 GPS 速度投影計算。':!fresh?'位置超過 30 秒未更新，暫停速度與估時。':'GPS 可能有誤差；速度為朝巨城的向量分量。';
  const bar=$('speed-bar'),fraction=Math.min(50,Math.abs(projected??0)/15*50);
  bar.style.left=projected<0?`${50-fraction}%`:'50%';bar.style.width=fraction+'%';bar.style.background=projected<0?'#bf2730':'#8a9375';
- const mallMassTonnes=Number($('mall-mass').value);
- const validMass=Number.isFinite(mallMassTonnes)&&mallMassTonnes>=1&&mallMassTonnes<=1e9;
- $('mall-mass').setAttribute('aria-invalid',String(!validMass));
- $('gravity-error').hidden=validMass;
- const force=validMass?gravitationalForce(distance*1000,mallMassTonnes*1000):null;
+ const force=gravitationalForce(distance*1000);
  const usablePosition=mode==='demo'||(mode==='live'&&fresh&&Number.isFinite(accuracy)&&accuracy>=0&&accuracy<=80);
  $('gravity-force').textContent=usablePosition?scientificForce(force):'—';
  $('gravity-unit').hidden=force===null||!usablePosition;
- $('gravity-note').textContent=!validMass?'請先設定有效的巨城假設質量。':!usablePosition?'等待準確、即時的定位資料，再計算引力。':arrived?'已進入巨城範圍；近場需要建築物質量分布，不適用點質量估算。':mode==='demo'?'使用示範位置與假設質量估算；單位為牛頓。':'使用目前直線距離與假設質量估算；單位為牛頓。';
+ $('gravity-note').textContent=!usablePosition?'等待準確、即時的定位資料，再計算引力。':arrived?'已進入巨城範圍；近場需要建築物質量分布，不適用點質量估算。':mode==='demo'?'使用示範位置與假設質量估算；單位為牛頓。':'使用目前直線距離與假設質量估算；單位為牛頓。';
  const meatball=Number($('meatball-speed').value),valid=Number.isFinite(meatball)&&meatball>=1&&meatball<=200;
  $('meatball-speed').setAttribute('aria-invalid',String(!valid));
  $('meatball-eta').textContent=!valid?'請輸入 1–200':arrived?'抵達啦！':duration(distance/meatball*60)+'抵達';
@@ -138,7 +134,6 @@ $('compass-btn').addEventListener('click',async()=>{
  }catch{notice('無法啟用手機羅盤，請使用北方朝上的方位圖。');}
 });
 $('meatball-speed').addEventListener('input',render);
-$('mall-mass').addEventListener('input',render);
 $('weather-refresh').addEventListener('click',fetchWeather);
 setInterval(()=>{render();if(Date.now()-lastWeatherFetch>600000&&!$('weather-refresh').disabled)fetchWeather();},5000);
 window.addEventListener('pagehide',()=>{if(watchId!==null)navigator.geolocation.clearWatch(watchId);});
