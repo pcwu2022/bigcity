@@ -39,6 +39,12 @@ Each area's population is assumed uniform in a residential circle with a manuall
 - [Hsinchu City November 2024 district populations](https://dep-civil.hccg.gov.tw/uploaddowndoc?file=Demographics%2F202412011022260.pdf&flag=doc)
 - [Hsinchu County December 2024 township populations, table 1](https://service.cca.gov.tw/File/Get/cca/zh-tw/3wbVkIvrB2HqGIh#page=5)
 
+## Social sharing preview
+
+`social-preview.png` is the 1200 × 630 PNG sharing card. Open Graph and Twitter large-image metadata is embedded directly in `index.html` for crawlers without JavaScript. Image URLs and the canonical URL use the deployed origin. The native drawing source is `scripts/generate-social-preview.swift` (macOS/AppKit; run `swift scripts/generate-social-preview.swift social-preview.png` to regenerate). The committed PNG is used by normal builds, so deployment does not need Swift.
+
+The site currently requires sign-in. Anonymous requests receive the hosting sign-in page and its metadata, so external messaging/social crawlers cannot see this custom card until the owner makes the site public. Existing access is preserved. Platforms may cache previous link previews and may require a fresh scrape after public access is enabled.
+
 ## Sources
 
 - [Big City location](https://en.wikipedia.org/wiki/Big_City_%28shopping_mall%29)
