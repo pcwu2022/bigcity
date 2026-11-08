@@ -31,6 +31,15 @@
 <details class="explanation"><summary>這些數字，怎麼來的？<span>＋</span></summary><div><p>距離採球面直線距離；方向採真北方位角。移動速度投影為 v × cos（移動方向 − 巨城方位），正值代表靠近，負值代表遠離。只有朝巨城前進時才計算直線估時，實際路線請以 Google Maps 為準。</p><p>風向資料表示「從哪裡吹來」，計算時轉向 180°。風的估時是順風速度分量的理想值；側風會讓你偏離巨城，並不代表能隨風抵達。貢丸假設以設定時速直直前進。以巨城中心 200 公尺內近似巨城街廓，視為抵達；定位準確時會顯示歡迎訊息。離開 300 公尺後再次進入，才會重新歡迎。</p><p>萬有引力以 F = GmM/r² 計算，G = 6.67430 × 10⁻¹¹ m³/(kg·s²)，你的質量固定為 80 kg。巨城質量以公噸輸入，換算為公斤；r 為你到巨城中心的直線距離（公尺）。將整座巨城視為點質量只是理想化近似，進入 200 公尺範圍後不顯示力值，避免誤用近場模型。</p><p>位置僅在此瀏覽器計算，不儲存。啟用定位後，座標會傳送至 Open-Meteo 取得當地風況；點擊導航會開啟 Google Maps。GPS 需要 HTTPS 或 localhost；手機羅盤依裝置支援程度提供。</p></div></details>
 <footer><span class="footer-brand">去巨城 <span>MADE FOR HSINCHU.</span></span><span>地球繞著太陽轉，新竹人繞著巨城轉。</span><span class="unofficial">非官方趣味專案 ↗</span></footer>
 </main>
+<dialog id="location-permission-dialog" class="welcome-dialog permission-dialog" aria-labelledby="permission-title" aria-describedby="permission-description permission-details">
+ <div class="welcome-emblem" aria-hidden="true"><svg class="icon"><use href="#locate"/></svg></div>
+ <div class="eyebrow">FIND YOUR WAY TO BIG CITY.</div>
+ <h2 id="permission-title">需要位置權限</h2>
+ <p id="permission-description">You need location permission to use this tool.</p>
+ <p id="permission-details">請允許定位，才能計算你與巨城的距離、方向與移動速度。啟用後，座標也會傳送至 Open-Meteo 取得當地風況。</p>
+ <button id="permission-enable" type="button" class="primary-button" autofocus>允許定位，出發！<span aria-hidden="true">↗</span></button>
+ <button id="permission-demo" type="button" class="permission-demo">先看看示範</button>
+</dialog>
 <dialog id="welcome-dialog" class="welcome-dialog" aria-labelledby="welcome-title" aria-describedby="welcome-description">
  <div class="welcome-emblem" aria-hidden="true">巨</div>
  <div class="eyebrow">ALL ROADS LED YOU HOME.</div>

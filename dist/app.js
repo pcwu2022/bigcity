@@ -106,7 +106,7 @@ function onPosition(result){
  notice(reliable?'':'定位誤差較大，暫停移動速度估算。請到視野開闊處再試。');render();checkArrival();
  if(!lastWeatherPosition||distanceKm(lastWeatherPosition,position)>2||Date.now()-lastWeatherFetch>600000)fetchWeather();
 }
-$('locate-btn').addEventListener('click',()=>{
+function handleLocation(){
  if(watchId!==null){resetDemo();return;}
  if(!navigator.geolocation){notice('此瀏覽器不支援定位，仍可使用示範模式。');return;}
  if(!window.isSecureContext){notice('定位需要 HTTPS 或 localhost。請透過本機伺服器開啟此頁面。');return;}
@@ -116,7 +116,13 @@ $('locate-btn').addEventListener('click',()=>{
  $('locate-btn').disabled=false;$('locate-btn').querySelector('span').textContent='使用我的位置';
  notice(({1:'位置權限未開啟，請在瀏覽器設定中允許定位。',2:'暫時找不到 GPS 位置，請移至視野開闊處重試。',3:'定位等待逾時，請再試一次。'}[error.code]||'定位失敗。')+' 目前顯示示範資料。');render();fetchWeather();
  },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+}
+$('locate-btn').addEventListener('click',handleLocation);
+$('permission-enable').addEventListener('click',()=>{
+ $('location-permission-dialog').close();
+ handleLocation();
 });
+$('permission-demo').addEventListener('click',()=>{$('location-permission-dialog').close();});
 function orientation(event){
  let value=null;
  if(Number.isFinite(event.webkitCompassHeading)&&(!Number.isFinite(event.webkitCompassAccuracy)||(event.webkitCompassAccuracy>=0&&event.webkitCompassAccuracy<=40)))value=event.webkitCompassHeading;
@@ -139,3 +145,6 @@ window.addEventListener('pagehide',()=>{if(watchId!==null)navigator.geolocation.
 try{const saved=localStorage.getItem('bigcity-meatball-speed');if(saved&&Number(saved)>=1&&Number(saved)<=200)$('meatball-speed').value=saved;}catch{}
 $('meatball-speed').addEventListener('change',()=>{const v=Number($('meatball-speed').value);if(v>=1&&v<=200)try{localStorage.setItem('bigcity-meatball-speed',String(v));}catch{}});
 render();fetchWeather();
+
+// Explain location access on every page load; the browser prompt waits for a click.
+$('location-permission-dialog').showModal();

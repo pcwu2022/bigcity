@@ -15,7 +15,7 @@ npm test
 npm run build
 ```
 
-Deploy `dist/` to any static HTTPS host. The default location and movement are explicitly labeled demo data. Click 使用我的位置 for actual location tracking; 停止定位 returns to the demo. Permission denial, stale fixes, weak accuracy, offline weather, unsupported orientation, and stationary motion all have explicit fallback states.
+Deploy `dist/` to any static HTTPS host. On each page load, a dialog explains that live features need location permission. “允許定位，出發！” requests browser location access; “先看看示範” or Escape dismisses it without requesting access. The default location and movement are explicitly labeled demo data. Click 使用我的位置 for actual location tracking; 停止定位 returns to the demo. Permission denial, stale fixes, weak accuracy, offline weather, unsupported orientation, and stationary motion all have explicit fallback states.
 
 ## Calculations
 
