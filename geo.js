@@ -28,3 +28,18 @@ export function duration(minutes){
  return `${Math.floor(m/1440)} 天 ${Math.floor(m%1440/60)} 小時`;
 }
 export const cardinal=deg=>['北','東北','東','東南','南','西南','西','西北'][Math.round(normalize(deg)/45)%8];
+
+export const GRAVITATIONAL_CONSTANT = 6.67430e-11; // m³ kg⁻¹ s⁻²
+export const PERSON_MASS_KG = 80;
+// The mall is approximated as a point mass at DESTINATION. Suppress near-field
+// results: a building's actual mass distribution is needed inside the block.
+export function gravitationalForce(distanceMeters,mallMassKg){
+ if(!Number.isFinite(distanceMeters)||distanceMeters<=ARRIVAL_RADIUS_KM*1000||!Number.isFinite(mallMassKg)||mallMassKg<=0)return null;
+ return GRAVITATIONAL_CONSTANT*PERSON_MASS_KG*mallMassKg/distanceMeters**2;
+}
+export function scientificForce(force){
+ if(!Number.isFinite(force)||force<=0)return '—';
+ const [coefficient,exponent]=force.toExponential(2).split('e');
+ const superscripts={'-':'⁻','+':'','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+ return `${coefficient} × 10${[...exponent].map(c=>superscripts[c]).join('')}`;
+}
