@@ -30,6 +30,15 @@ Deploy `dist/` to any static HTTPS host. On each page load, a dialog explains th
 - Mall bearing and wind share one compass: the red marker points toward Big City and the translucent green radar sector shows where wind blows TO (source bearing + 180°). The sector spans a fixed 50° as a visual direction marker, not measured wind variation. Both rotate with phone heading. Wind speed, projection ETA, and weather refresh live in the same panel. Missing, loading, failed, or calm wind hides the sector. The built-in phone compass is preferred automatically on load. On iOS, the startup location button (or compass button) requests motion/orientation access within the user gesture. Unsupported devices, denial, missing readings after 2.5 seconds, and stale readings after 20 seconds use the default fixed orientation. Both iOS compass and absolute Android headings account for screen rotation; relative-only orientation is ignored. iOS headings approximate magnetic north.
 - Position is processed locally. Weather requests send coordinates to Open-Meteo. Maps opens only on click.
 
+## Population comparison
+
+`population.js` contains 16 administrative population weights: Hsinchu City November 2024 (457,328), Hsinchu County December 2024 (594,641), total 1,051,969. These are historical household registrations, not current physical presence. The county figures are from table 1 (PDF page 5) of the county government's climate action draft hosted by the Ministry of Environment.
+
+Each area's population is assumed uniform in a residential circle with a manually selected approximate center and radius, explicitly NOT official geographic distribution, administrative boundaries, or measured household coordinates. The circle parameters are visible in `POPULATION_AREAS`. The intersection area with a mall-centered circle of the user's distance estimates the population closer to the mall; subtracting from the total gives the number farther away. The UI rounds to 1,000 people and whole percentages, identifies demo data, and hides the estimate for stale or inaccurate live GPS. This is a coarse playful comparison, not a precise or live ranking. Circle area calculations use a local planar approximation and center separations use Haversine distance.
+
+- [Hsinchu City November 2024 district populations](https://dep-civil.hccg.gov.tw/uploaddowndoc?file=Demographics%2F202412011022260.pdf&flag=doc)
+- [Hsinchu County December 2024 township populations, table 1](https://service.cca.gov.tw/File/Get/cca/zh-tw/3wbVkIvrB2HqGIh#page=5)
+
 ## Sources
 
 - [Big City location](https://en.wikipedia.org/wiki/Big_City_%28shopping_mall%29)

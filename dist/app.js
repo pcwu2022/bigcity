@@ -1,3 +1,4 @@
+import {populationComparison} from './population.js';
 import {gravitationalForce,scientificForce,ARRIVAL_RADIUS_KM,DEPARTURE_RADIUS_KM,DESTINATION,distanceKm,bearing,projectSpeed,windProjection,driftArrival,duration,cardinal,normalize} from './geo.js';
 const $=id=>document.getElementById(id);
 const demo={lat:24.8016,lon:120.9716};
@@ -58,6 +59,16 @@ function render(){
  $('motion-note').textContent=mode==='demo'?'示範速度；啟用定位後，以 GPS 速度投影計算。':!fresh?'位置超過 30 秒未更新，暫停速度與估時。':'GPS 可能有誤差；速度為朝巨城的向量分量。';
  const bar=$('speed-bar'),fraction=Math.min(50,Math.abs(projected??0)/15*50);
  bar.style.left=projected<0?`${50-fraction}%`:'50%';bar.style.width=fraction+'%';bar.style.background=projected<0?'#bf2730':'#8a9375';
+ const populationUsable=mode==='demo'||(mode==='live'&&fresh&&Number.isFinite(accuracy)&&accuracy>=0&&accuracy<=80);
+ const comparison=populationUsable?populationComparison(distance):null;
+ $('population-mode').textContent=mode==='demo'?'示範位置':populationUsable?'目前位置':'等待定位';
+ $('population-count').textContent=comparison?(comparison.farther/10000).toFixed(1):'—';
+ $('population-percent').textContent=comparison?`${Math.round(comparison.percent)}%`:'—';
+ $('population-distance').textContent=comparison?`距巨城 ${distance<1?Math.round(distance*1000)+' m':distance.toFixed(2)+' km'}`:'—';
+ $('population-bar').style.width=`${comparison?.percent??0}%`;
+ $('population-progress').setAttribute('aria-valuenow',String(comparison?Math.round(comparison.percent):0));
+ $('population-progress').setAttribute('aria-valuetext',comparison?`估計比 ${Math.round(comparison.percent)}% 的新竹縣市居民更靠近巨城`:'等待可靠定位');
+ $('population-note').textContent=!comparison?'等待準確、即時的定位資料。':mode==='demo'?'示範位置 · 非實際排名':'依直線距離與居住人口模型概估。';
  const force=gravitationalForce(distance*1000);
  const usablePosition=mode==='demo'||(mode==='live'&&fresh&&Number.isFinite(accuracy)&&accuracy>=0&&accuracy<=80);
  $('gravity-force').textContent=usablePosition?scientificForce(force):'—';
