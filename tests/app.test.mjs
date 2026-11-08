@@ -74,3 +74,39 @@ test('refresh, weather failure and calm conditions hide the wind arrow',async()=
  assert.equal(element('wind-orbit').hidden,true);assert.equal(element('wind-direction').textContent,'目前無風');
  globalThis.fetch=originalFetch;
 });
+
+test('phone compass starts automatically and falls back on stale or unsupported sensors',async()=>{
+ // Listeners exist on load without pressing the compass button.
+ assert.equal(typeof orientationHandlers.deviceorientation,'function');
+ window.screen={orientation:{angle:90}};
+ orientationHandlers.deviceorientation({webkitCompassHeading:30,webkitCompassAccuracy:10});
+ assert.equal(element('compass-mode').textContent,'手機指北針');
+ assert.equal(element('compass-btn')['aria-pressed'],'true');
+ const mallWithPhone=element('orbit').style.transform;
+ const now=Date.now;
+ try{Date.now=()=>now()+21000;element('meatball-speed').handlers.input();}
+ finally{Date.now=now;}
+ assert.equal(element('compass-mode').textContent,'預設方位');
+ assert.notEqual(element('orbit').style.transform,mallWithPhone);
+ const sensor=window.DeviceOrientationEvent;delete window.DeviceOrientationEvent;
+ await element('compass-btn').handlers.click();
+ assert.equal(element('compass-mode').textContent,'預設方位');
+ const fixed=element('orbit').style.transform;
+ orientationHandlers.deviceorientation({absolute:false,alpha:42});
+ assert.equal(element('orbit').style.transform,fixed);
+ window.DeviceOrientationEvent=sensor;window.screen={orientation:{angle:0}};
+});
+test('iOS waits for a gesture, requests compass with location, and handles denied access',async()=>{
+ let requests=0;
+ window.DeviceOrientationEvent={requestPermission:async()=>{requests++;return 'denied';}};
+ await import('../app.js?ios-permission-test');
+ assert.equal(requests,0);assert.equal(element('compass-mode').textContent,'啟用指北針');
+ element('permission-enable').handlers.click();
+ await new Promise(resolve=>setTimeout(resolve,0));
+ assert.equal(requests,1);assert.equal(element('compass-mode').textContent,'預設方位');
+ window.DeviceOrientationEvent.requestPermission=async()=>{requests++;return 'granted';};
+ await element('compass-btn').handlers.click();
+ orientationHandlers.deviceorientation({absolute:true,alpha:270});
+ assert.equal(element('compass-mode').textContent,'手機指北針');
+ assert.equal(element('compass-btn')['aria-pressed'],'true');
+});

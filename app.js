@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const demo={lat:24.8016,lon:120.9716};
 let position={...demo},mode='demo',watchId=null,previous=null,speed=4.2,heading=bearing(demo),fixTime=Date.now(),accuracy=null;
 let wind=null,weatherTime=null,weatherController=null,weatherVersion=0,lastWeatherPosition=null,lastWeatherFetch=0;
-let compassHeading=null,compassTime=0,orientationEnabled=false;
+let compassHeading=null,compassTime=0,orientationEnabled=false,orientationState='waiting';
 let welcomedThisVisit=false;
 function checkArrival(){
  // Only fresh, reasonably accurate real GPS fixes can trigger or reset a visit.
@@ -45,7 +45,9 @@ function render(){
  const el=document.querySelector('.direction.'+key),a=(offset+northRotation)*Math.PI/180;
  el.style.left=`${50+43*Math.sin(a)}%`;el.style.top=`${50-43*Math.cos(a)}%`;el.style.right='auto';el.style.bottom='auto';el.style.transform='translate(-50%,-50%)';
  }
- $('compass-mode').textContent=compassFresh?'手機朝向 · 近似北方':'北方朝上';
+ $('compass-mode').textContent=compassFresh?'手機指北針':orientationState==='permission'?'啟用指北針':orientationState==='waiting'?'等待指北針…':'預設方位';
+ $('compass-btn').setAttribute('aria-pressed',String(compassFresh));
+ $('compass-btn').setAttribute('aria-label',compassFresh?'手機指北針已啟用':'啟用手機指北針');
  $('bearing-value').textContent=arrived?'巨城就在這裡！':`${cardinal(target)}方 ${Math.round(target)}°`;
  $('toward-speed').textContent=projected===null?'—':`${projected>0?'+':''}${projected.toFixed(1)}`;
  $('motion-tag').textContent=mode==='demo'?'示範移動':!fresh?'定位已過期':speed===null?'等待移動':'即時移動';
@@ -107,6 +109,8 @@ function onPosition(result){
 }
 function handleLocation(){
  if(watchId!==null){resetDemo();return;}
+ // Start the sensor permission request within the same user gesture as location.
+ void enableCompass(true);
  if(!navigator.geolocation){notice('此瀏覽器不支援定位，仍可使用示範模式。');return;}
  if(!window.isSecureContext){notice('定位需要 HTTPS 或 localhost。請透過本機伺服器開啟此頁面。');return;}
  mode='loading';speed=null;heading=null;$('locate-btn').disabled=true;notice('請允許瀏覽器存取位置。位置僅在本頁計算，當地風況由 Open-Meteo 提供。');render();
@@ -124,18 +128,40 @@ $('permission-enable').addEventListener('click',()=>{
 $('permission-demo').addEventListener('click',()=>{$('location-permission-dialog').close();});
 function orientation(event){
  let value=null;
- if(Number.isFinite(event.webkitCompassHeading)&&(!Number.isFinite(event.webkitCompassAccuracy)||(event.webkitCompassAccuracy>=0&&event.webkitCompassAccuracy<=40)))value=event.webkitCompassHeading;
- else if(event.absolute&&Number.isFinite(event.alpha))value=normalize(360-event.alpha+(screen.orientation?.angle??0));
- if(value!==null){compassHeading=normalize(value);compassTime=Date.now();render();}
+ const screenAngle=window.screen?.orientation?.angle??window.orientation??0;
+ if(Number.isFinite(event.webkitCompassHeading)&&(!Number.isFinite(event.webkitCompassAccuracy)||(event.webkitCompassAccuracy>=0&&event.webkitCompassAccuracy<=40)))value=normalize(event.webkitCompassHeading+screenAngle);
+ else if(event.absolute&&Number.isFinite(event.alpha))value=normalize(360-event.alpha+screenAngle);
+ if(value!==null){compassHeading=normalize(value);compassTime=Date.now();orientationState='active';render();}
 }
-$('compass-btn').addEventListener('click',async()=>{
+function compassFallback(){
+ compassHeading=null;orientationState='fallback';render();
+}
+let compassPermissionRequest=null;
+async function enableCompass(userGesture=false){
+ const sensor=window.DeviceOrientationEvent;
+ if(!sensor||!window.isSecureContext){compassFallback();return;}
+ if(compassPermissionRequest)return compassPermissionRequest;
  try{
- if(!window.DeviceOrientationEvent){notice('此裝置沒有可用的羅盤。圖上的 N 朝向北方，巨城方位仍可正常使用。');return;}
- if(typeof DeviceOrientationEvent.requestPermission==='function'&&await DeviceOrientationEvent.requestPermission()!=='granted'){notice('羅盤權限未開啟，目前使用北方朝上的方位圖。');return;}
- if(!orientationEnabled){window.addEventListener('deviceorientationabsolute',orientation);window.addEventListener('deviceorientation',orientation);orientationEnabled=true;}
- notice('請將手機平放。取得可靠的羅盤讀數後，方向圖會隨手機轉動；未支援的裝置維持北方朝上。');
- }catch{notice('無法啟用手機羅盤，請使用北方朝上的方位圖。');}
-});
+  if(typeof sensor.requestPermission==='function'&&!orientationEnabled){
+   if(!userGesture){orientationState='permission';render();return;}
+   // iOS requires a user gesture for its native compass permission prompt.
+   compassPermissionRequest=sensor.requestPermission();
+   const permission=await compassPermissionRequest;
+   if(permission!=='granted'){compassFallback();return;}
+  }
+  if(!orientationEnabled){
+   window.addEventListener('deviceorientationabsolute',orientation);
+   window.addEventListener('deviceorientation',orientation);
+   orientationEnabled=true;
+  }
+  if(compassHeading===null){
+   orientationState='waiting';render();
+   setTimeout(()=>{if(compassHeading===null&&orientationState==='waiting')compassFallback();},2500);
+  }
+ }catch{compassFallback();}
+ finally{compassPermissionRequest=null;}
+}
+$('compass-btn').addEventListener('click',()=>enableCompass(true));
 $('meatball-speed').addEventListener('input',render);
 $('weather-refresh').addEventListener('click',fetchWeather);
 setInterval(()=>{render();if(Date.now()-lastWeatherFetch>600000&&!$('weather-refresh').disabled)fetchWeather();},5000);
@@ -143,6 +169,7 @@ window.addEventListener('pagehide',()=>{if(watchId!==null)navigator.geolocation.
 try{const saved=localStorage.getItem('bigcity-meatball-speed');if(saved&&Number(saved)>=1&&Number(saved)<=200)$('meatball-speed').value=saved;}catch{}
 $('meatball-speed').addEventListener('change',()=>{const v=Number($('meatball-speed').value);if(v>=1&&v<=200)try{localStorage.setItem('bigcity-meatball-speed',String(v));}catch{}});
 render();fetchWeather();
+void enableCompass();
 
 // Explain location access on every page load; the browser prompt waits for a click.
 $('location-permission-dialog').showModal();
