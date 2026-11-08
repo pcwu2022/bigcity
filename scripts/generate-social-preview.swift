@@ -15,15 +15,16 @@ func path(_ points:[NSPoint],_ stroke:NSColor,_ thickness:CGFloat=1){let p=NSBez
 func circle(_ x:CGFloat,_ y:CGFloat,_ radius:CGFloat,_ stroke:NSColor,_ thickness:CGFloat=1){let p=NSBezierPath(ovalIn:NSRect(x:x-radius,y:y-radius,width:radius*2,height:radius*2));p.lineWidth=thickness;stroke.setStroke();p.stroke()}
 rect(0,0,1200,630,color(0xfaf8f3));rect(0,0,1200,10,red)
 rect(64,52,46,48,red,5);text("巨",70,54,34,.white,.bold)
-text("去巨城",126,51,25,ink,.bold);text("BIG CITY, HERE I COME.",127,85,10,muted,.medium)
+text("去巨城",126,51,25,ink,.bold);text("Go Big or Go Home",127,85,10,muted,.medium)
 text("HSINCHU, TW",984,68,13,muted,.medium)
 path([NSPoint(x:64,y:125),NSPoint(x:1136,y:125)],line)
 text("新竹人的宇宙中心",66,161,16,red,.semibold)
 text("去巨城",60,195,94,red,.heavy)
-text("不是在巨城，",66,325,34,ink,.bold)
-text("就是在去巨城的路上。",66,376,34,ink,.bold)
-path([NSPoint(x:67,y:429),NSPoint(x:394,y:426),NSPoint(x:442,y:431)],red,3)
-text("距離・方向・風向・貢丸之旅",66,468,19,muted,.medium)
+text("Go Big or Go Home",66,308,22,red,.semibold)
+text("不是在巨城，",66,350,34,ink,.bold)
+text("就是在去巨城的路上。",66,396,34,ink,.bold)
+path([NSPoint(x:67,y:445),NSPoint(x:394,y:442),NSPoint(x:442,y:447)],red,3)
+text("距離・方向・風向・貢丸之旅",66,486,19,muted,.medium)
 let cx:CGFloat=924, cy:CGFloat=316
 for r:CGFloat in [66,110,154]{circle(cx,cy,r,line)}
 for degree in stride(from:0,to:360,by:10){let a=CGFloat(degree)*CGFloat.pi/180;path([NSPoint(x:cx+154*sin(a),y:cy-154*cos(a)),NSPoint(x:cx+160*sin(a),y:cy-160*cos(a))],color(0xc9c0b5))}

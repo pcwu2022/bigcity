@@ -1,4 +1,4 @@
-# 去巨城 · Big City, here I come
+# 去巨城 · Go Big or Go Home
 
 A responsive Traditional Chinese web app built with plain HTML, CSS, and JavaScript. No API key or runtime dependencies.
 
