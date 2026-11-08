@@ -1,0 +1,36 @@
+# 去巨城 · Big City, here I come
+
+A responsive Traditional Chinese web app built with plain HTML, CSS, and JavaScript. No API key or runtime dependencies.
+
+## Run
+
+```sh
+npm run dev
+```
+
+Open http://localhost:5173. Location requires HTTPS or localhost. Mobile location and orientation must be tested over HTTPS on a real phone. Open `index.html` through a server because the JavaScript uses ES modules.
+
+```sh
+npm test
+npm run build
+```
+
+Deploy `dist/` to any static HTTPS host. The default location and movement are explicitly labeled demo data. Click 使用我的位置 for actual location tracking; 停止定位 returns to the demo. Permission denial, stale fixes, weak accuracy, offline weather, unsupported orientation, and stationary motion all have explicit fallback states.
+
+## Calculations
+
+- Destination: Big City Shopping Mall, 24.81000 N, 120.97750 E (approximate mall center).
+- Haversine straight-line distance and initial true bearing.
+- Closing speed: velocity dot unit bearing = speed × cos(heading − bearing). Native GPS speed is preferred; displacement fallback requires sufficient time, movement beyond noise, and reasonable accuracy.
+- ETA only when approaching faster than 0.5 km/h, with arrival within 80 m. GPS data expires after 30 seconds.
+- Open-Meteo current model wind at the displayed location, refreshed every 10 minutes or after moving 2 km. Weather directions are FROM bearings, reversed by 180° before vector projection. Displayed wind ETA is only the time to cover the along-bearing component; crosswind misses the destination and the approximate lateral offset is shown. This is a playful constant-vector model, not physical drift simulation.
+- Meatball riding: distance / configurable speed, default 10 km/h; speed preference saved locally.
+- Compass defaults to north-up. Compatible phones can enable orientation with a user gesture. iOS compass headings are approximate magnetic north; absolute Android orientation is used where available. No screen orientation data means a north-up fallback.
+- Position is processed locally. Weather requests send coordinates to Open-Meteo. Maps opens only on click.
+
+## Sources
+
+- [Big City location](https://en.wikipedia.org/wiki/Big_City_%28shopping_mall%29)
+- [Open-Meteo API documentation](https://open-meteo.com/en/docs) (current model conditions, km/h, wind direction)
+
+Unofficial fan project; the illustration and design are original. Optional Google Fonts have system-font fallbacks.
