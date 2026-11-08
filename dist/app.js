@@ -35,6 +35,10 @@ function render(){
  const angle=normalize(target-(compassFresh?compassHeading:0));
  $('orbit').style.transform=`rotate(${angle}deg)`;
  document.querySelector('.mall-marker').style.transform=`rotate(${-angle}deg)`;
+ const windVisible=wind!==null&&wind.speed>0;
+ $('wind-orbit').hidden=!windVisible;
+ if(windVisible)$('wind-orbit').style.transform=`rotate(${normalize(wind.from+180-(compassFresh?compassHeading:0))}deg)`;
+ $('compass').setAttribute('aria-label',`巨城方位 ${Math.round(target)} 度；${windVisible?`${cardinal(wind.from)}風 ${wind.speed.toFixed(1)} 公里每小時，往${cardinal(wind.from+180)}吹`:wind?'目前無風':'風況尚未取得'}`);
  // Cardinal letters stay meaningful as the phone rotates.
  const northRotation=compassFresh?-compassHeading:0;
  for(const [key,offset] of [['n',0],['e',90],['s',180],['w',270]]){
@@ -63,8 +67,7 @@ function render(){
  if(wind){
  const drift=driftArrival(distance,wind.speed,wind.from,target);
  $('wind-speed').textContent=wind.speed.toFixed(1);
- $('wind-direction').textContent=`${cardinal(wind.from)}風 ${Math.round(wind.from)}° · 往${cardinal(wind.from+180)}吹`;
- $('wind-arrow').textContent='↑';$('wind-arrow').style.display='inline-block';$('wind-arrow').style.transform=`rotate(${normalize(wind.from+180)}deg)`;
+ $('wind-direction').textContent=wind.speed===0?'目前無風':`${cardinal(wind.from)}風 ${Math.round(wind.from)}° · 往${cardinal(wind.from+180)}吹`;
  $('wind-eta').textContent=arrived?'抵達啦！':drift.minutes===null?'風沒有往巨城吹':duration(drift.minutes)+'（投影）';
  $('wind-note').textContent=arrived?'巨城就在附近，不需要搭風了。':drift.minutes===null?`朝巨城分量 ${drift.toward.toFixed(1)} km/h；今天的風不順路。`:`朝巨城分量 +${drift.toward.toFixed(1)} km/h；側風偏移約 ${drift.missKm.toFixed(1)} km，未必抵達。`;
  $('weather-source').textContent=`Open-Meteo · ${weatherTime?.replace('T',' ')??''} 台灣時間 ↗`;
@@ -75,14 +78,14 @@ async function fetchWeather(){
  const timer=setTimeout(()=>weatherController?.abort(),12000);
  $('weather-refresh').disabled=true;$('weather-refresh').textContent='取得風況…';
  lastWeatherPosition={...position};lastWeatherFetch=Date.now();
- wind=null;$('wind-speed').textContent='—';$('wind-eta').textContent='等待風來';$('wind-direction').textContent='正在取得當地風況…';$('wind-note').textContent='風向為風吹來的方向。';$('weather-source').textContent='Open-Meteo · 模型風況 ↗';
+ wind=null;render();$('wind-speed').textContent='—';$('wind-eta').textContent='等待風來';$('wind-direction').textContent='正在取得當地風況…';$('wind-note').textContent='風向為風吹來的方向。';$('weather-source').textContent='Open-Meteo · 模型風況 ↗';
  try {
  const url=new URL('https://api.open-meteo.com/v1/forecast');
  url.search=new URLSearchParams({latitude:String(position.lat),longitude:String(position.lon),current:'wind_speed_10m,wind_direction_10m',wind_speed_unit:'kmh',timezone:'Asia/Taipei',forecast_days:'1'});
  const response=await fetch(url,{signal:weatherController.signal});if(!response.ok)throw Error('Weather unavailable');const data=await response.json();if(version!==weatherVersion)return;
  const current=data.current;if(!current||!Number.isFinite(current.wind_speed_10m)||!Number.isFinite(current.wind_direction_10m))throw Error('Invalid wind data');
  wind={speed:current.wind_speed_10m,from:current.wind_direction_10m};weatherTime=current.time;lastWeatherPosition={...position};lastWeatherFetch=Date.now();render();
- }catch(error){if(version!==weatherVersion)return;$('wind-direction').textContent='風況暫時無法取得';$('wind-eta').textContent='等風，也等網路';$('wind-note').textContent='請檢查網路，點右上角重試。不以示範風況代替。';}
+ }catch(error){if(version!==weatherVersion)return;$('wind-direction').textContent='風況暫時無法取得';$('wind-eta').textContent='等風，也等網路';$('wind-note').textContent='請檢查網路，點「更新風況」重試。';}
  finally{clearTimeout(timer);if(version===weatherVersion){$('weather-refresh').disabled=false;$('weather-refresh').textContent='更新風況 ↻';}}
 }
 function onPosition(result){

@@ -5,7 +5,9 @@ function element(id){if(!elements.has(id))elements.set(id,{textContent:'',hidden
 globalThis.document={getElementById:element,querySelector:element};
 let positionCallback,errorCallback,cleared=false,watchCalls=0;
 Object.defineProperty(globalThis,'navigator',{value:{geolocation:{watchPosition(ok,err){watchCalls++;positionCallback=ok;errorCallback=err;return 7;},clearWatch(){cleared=true;}}},configurable:true});
-globalThis.window={isSecureContext:true,addEventListener(){}};
+const orientationHandlers={};
+globalThis.DeviceOrientationEvent={};
+globalThis.window={isSecureContext:true,DeviceOrientationEvent,addEventListener(name,handler){orientationHandlers[name]=handler;}};
 globalThis.localStorage={getItem(){return null;},setItem(){}};
 globalThis.fetch=async()=>({ok:true,json:async()=>({current:{wind_speed_10m:20,wind_direction_10m:225,time:'2026-11-08T10:00'}})});
 globalThis.setInterval=()=>0;
@@ -46,4 +48,29 @@ test('startup enable button closes explanation and requests location',()=>{
  dialog.showModal();element('permission-enable').handlers.click();
  assert.equal(dialog.open,false);assert.equal(watchCalls,before+1);assert.equal(element('mode-label').textContent,'GPS…');
  errorCallback({code:1});assert.equal(element('mode-label').textContent,'DEMO');
+});
+
+test('shared compass converts wind FROM to flow TO and rotates both bearings with the phone',async()=>{
+ await element('weather-refresh').handlers.click();
+ assert.equal(element('wind-orbit').hidden,false);
+ assert.equal(element('wind-orbit').style.transform,'rotate(45deg)');
+ const originalMall=Number(element('orbit').style.transform.match(/rotate\((.*)deg\)/)[1]);
+ await element('compass-btn').handlers.click();
+ orientationHandlers.deviceorientation({webkitCompassHeading:90,webkitCompassAccuracy:10});
+ assert.equal(element('wind-orbit').style.transform,'rotate(315deg)');
+ const rotatedMall=Number(element('orbit').style.transform.match(/rotate\((.*)deg\)/)[1]);
+ assert.ok(Math.abs(rotatedMall-(originalMall+270)%360)<1e-8);
+ assert.match(element('compass')['aria-label'],/西南風.*往東北吹/);
+});
+test('refresh, weather failure and calm conditions hide the wind arrow',async()=>{
+ const originalFetch=globalThis.fetch;
+ globalThis.fetch=async()=>{throw Error('offline');};
+ const pending=element('weather-refresh').handlers.click();
+ assert.equal(element('wind-orbit').hidden,true);
+ await pending;assert.equal(element('wind-orbit').hidden,true);
+ assert.match(element('wind-direction').textContent,/無法取得/);
+ globalThis.fetch=async()=>({ok:true,json:async()=>({current:{wind_speed_10m:0,wind_direction_10m:225,time:'2026-11-08T10:00'}})});
+ await element('weather-refresh').handlers.click();
+ assert.equal(element('wind-orbit').hidden,true);assert.equal(element('wind-direction').textContent,'目前無風');
+ globalThis.fetch=originalFetch;
 });
