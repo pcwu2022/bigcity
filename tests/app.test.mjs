@@ -62,7 +62,7 @@ test('shared compass converts wind FROM to flow TO and rotates both bearings wit
  assert.ok(Math.abs(rotatedMall-(originalMall+270)%360)<1e-8);
  assert.match(element('compass')['aria-label'],/西南風.*往東北吹/);
 });
-test('refresh, weather failure and calm conditions hide the wind arrow',async()=>{
+test('refresh, weather failure and calm conditions hide the wind sector',async()=>{
  const originalFetch=globalThis.fetch;
  globalThis.fetch=async()=>{throw Error('offline');};
  const pending=element('weather-refresh').handlers.click();
