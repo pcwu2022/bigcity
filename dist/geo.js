@@ -1,4 +1,7 @@
 export const DESTINATION = {lat:24.81000,lon:120.97750};
+// Approximate mall-block arrival area; larger exit radius prevents GPS jitter repeats.
+export const ARRIVAL_RADIUS_KM = .2;
+export const DEPARTURE_RADIUS_KM = .3;
 const rad = n => n*Math.PI/180;
 export const normalize = n => (n%360+360)%360;
 export function distanceKm(a,b=DESTINATION) {

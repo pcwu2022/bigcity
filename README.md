@@ -22,7 +22,8 @@ Deploy `dist/` to any static HTTPS host. The default location and movement are e
 - Destination: Big City Shopping Mall, 24.81000 N, 120.97750 E (approximate mall center).
 - Haversine straight-line distance and initial true bearing.
 - Closing speed: velocity dot unit bearing = speed × cos(heading − bearing). Native GPS speed is preferred; displacement fallback requires sufficient time, movement beyond noise, and reasonable accuracy.
-- ETA only when approaching faster than 0.5 km/h, with arrival within 80 m. GPS data expires after 30 seconds.
+- ETA only when approaching faster than 0.5 km/h, with arrival within 200 m (an approximate mall-block radius). GPS data expires after 30 seconds.
+- A red “Welcome back” dialog appears on a fresh GPS fix inside 200 m, with accuracy at most 80 m. It appears once per visit, including when tracking starts inside the area, and rearms only after a reliable fix beyond 300 m. Demo, stale, and inaccurate fixes never trigger or rearm it. The native dialog supports keyboard focus, Escape, and a close button.
 - Open-Meteo current model wind at the displayed location, refreshed every 10 minutes or after moving 2 km. Weather directions are FROM bearings, reversed by 180° before vector projection. Displayed wind ETA is only the time to cover the along-bearing component; crosswind misses the destination and the approximate lateral offset is shown. This is a playful constant-vector model, not physical drift simulation.
 - Meatball riding: distance / configurable speed, default 10 km/h; speed preference saved locally.
 - Compass defaults to north-up. Compatible phones can enable orientation with a user gesture. iOS compass headings are approximate magnetic north; absolute Android orientation is used where available. No screen orientation data means a north-up fallback.

@@ -1,9 +1,20 @@
-import {DESTINATION,distanceKm,bearing,projectSpeed,windProjection,driftArrival,duration,cardinal,normalize} from './geo.js';
+import {ARRIVAL_RADIUS_KM,DEPARTURE_RADIUS_KM,DESTINATION,distanceKm,bearing,projectSpeed,windProjection,driftArrival,duration,cardinal,normalize} from './geo.js';
 const $=id=>document.getElementById(id);
 const demo={lat:24.8016,lon:120.9716};
 let position={...demo},mode='demo',watchId=null,previous=null,speed=4.2,heading=bearing(demo),fixTime=Date.now(),accuracy=null;
 let wind=null,weatherTime=null,weatherController=null,weatherVersion=0,lastWeatherPosition=null,lastWeatherFetch=0;
 let compassHeading=null,compassTime=0,orientationEnabled=false;
+let welcomedThisVisit=false;
+function checkArrival(){
+ // Only fresh, reasonably accurate real GPS fixes can trigger or reset a visit.
+ if(mode!=='live'||Date.now()-fixTime>=30000||!Number.isFinite(accuracy)||accuracy<0||accuracy>80)return;
+ const distance=distanceKm(position);
+ if(distance>DEPARTURE_RADIUS_KM){welcomedThisVisit=false;return;}
+ if(distance<=ARRIVAL_RADIUS_KM&&!welcomedThisVisit){
+  welcomedThisVisit=true;
+  if(!$('welcome-dialog').open)$('welcome-dialog').showModal();
+ }
+}
 const notice=text=>{$('notice').textContent=text;$('notice').hidden=!text;};
 function resetDemo(){
  if(watchId!==null)navigator.geolocation.clearWatch(watchId);
@@ -12,7 +23,7 @@ function resetDemo(){
  notice('已停止定位，回到示範位置與示範移動速度。');render();fetchWeather();
 }
 function render(){
- const distance=distanceKm(position),target=bearing(position),arrived=distance<=.08;
+ const distance=distanceKm(position),target=bearing(position),arrived=distance<=ARRIVAL_RADIUS_KM;
  const fresh=mode==='demo'||Date.now()-fixTime<30000;
  const projected=fresh&&speed!==null&&heading!==null?projectSpeed(speed,heading,target):speed===0&&fresh?0:null;
  $('mode-label').textContent=mode==='demo'?'DEMO':mode==='loading'?'GPS…':fresh?'GPS':'STALE';
@@ -83,7 +94,7 @@ function onPosition(result){
  }
  if(!previous||fixTime-previous.time>=4000)previous={position:{...position},time:fixTime,accuracy:c.accuracy};
  $('locate-btn').disabled=false;$('locate-btn').querySelector('span').textContent='停止定位';
- notice(reliable?'':'定位誤差較大，暫停移動速度估算。請到視野開闊處再試。');render();
+ notice(reliable?'':'定位誤差較大，暫停移動速度估算。請到視野開闊處再試。');render();checkArrival();
  if(!lastWeatherPosition||distanceKm(lastWeatherPosition,position)>2||Date.now()-lastWeatherFetch>600000)fetchWeather();
 }
 $('locate-btn').addEventListener('click',()=>{
